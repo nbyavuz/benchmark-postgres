@@ -12,7 +12,7 @@ mkdir -p $result_dir
 
 # Configurable settings
 pg_count_ware=300 # Warehouse count
-pg_count_vu=60 # Virtual user count
+pg_count_vu=60 # Virtual user count to create warehouses
 pg_rampup=2 # Ramp up time in minutes
 pg_duration=5 # Test duration in minutes
 pg_vacuum=true # Vacuum
