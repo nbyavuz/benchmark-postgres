@@ -13,6 +13,7 @@ mkdir -p $result_dir
 # Configurable settings
 pg_count_ware=300 # Warehouse count
 pg_count_vu=60 # Virtual user count to create warehouses
+pg_benchmark_vu="1 8 16 32" # Virtual user counts to test
 pg_rampup=2 # Ramp up time in minutes
 pg_duration=5 # Test duration in minutes
 pg_vacuum=true # Vacuum
@@ -26,7 +27,7 @@ source ${current_dir}/pgschemabuild.tcl
 !
 
 ./hammerdbcli <<! 2>&1 | stdbuf -oL -eL sed -e "s,\x1B\[[0-9;]*[a-zA-Z],,g" -e "s,\r,,g" -e "s,hammerdb>,,g" -e "s,after\#[0-9]*,,g" >> $log_dir/pgrun.output
-set argv [list $pg_rampup $pg_duration $pg_vacuum]
+set argv [list $pg_rampup $pg_duration $pg_vacuum $pg_benchmark_vu]
 set argc 3
 source ${current_dir}/pgrun.tcl
 !

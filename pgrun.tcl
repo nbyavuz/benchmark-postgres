@@ -17,7 +17,7 @@ return
 
 puts "SETTING CONFIGURATION"
 dbset db pg
-dbset db bm tpc-c
+dbset bm tpc-c
 diset connection pg_host localhost
 diset connection pg_port 5432
 diset tpcc pg_driver timed
@@ -28,7 +28,7 @@ print dict
 vuset logtotemp 1
 loadscript
 puts "SEQUENCE STARTED"
-foreach z { 1 16 32 64 } {
+foreach z [lrange $argv 3 end]  {
 puts "$z VU TEST"
 vuset vu $z
 vucreate
