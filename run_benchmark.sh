@@ -22,8 +22,9 @@ pg_duration=5 # Test duration in minutes
 
 cd $hammerdb_cli_dir
 
-psql -c "DROP DATABASE IF EXISTS tpcc" postgres
-psql -c "DROP DATABASE IF EXISTS tpcc_copy" postgres
+for cur_vu in ${pg_benchmark_vu}; do
+
+    psql -c "DROP DATABASE IF EXISTS tpcc" postgres
 
 echo "Running schema build"
 ./hammerdbcli <<! 2>&1 | stdbuf -oL -eL sed -e "s,\x1B\[[0-9;]*[a-zA-Z],,g" -e "s,\r,,g" -e "s,hammerdb>,,g" -e "s,after\#[0-9]*,,g" >> $log_dir/${schemabuild_file_name}
@@ -31,12 +32,6 @@ set argv [list $pg_count_ware $pg_count_vu]
 set argc 2
 source ${current_dir}/pgschemabuild.tcl
 !
-
-# copy database
-echo "Copying tpcc DB to tpcc_copy"
-psql -c "CREATE DATABASE tpcc_copy WITH TEMPLATE tpcc" postgres
-
-for cur_vu in ${pg_benchmark_vu}; do
 
     # Run VACUUM and CHECKPOINT before each benchmark
     psql -c "VACUUM" postgres
@@ -48,12 +43,6 @@ set argv [list $pg_rampup $pg_duration $cur_vu]
 set argc 3
 source ${current_dir}/pgrun.tcl
 !
-
-    # Re-create tpcc DB by using template
-    echo "Re-creating tpcc DB by using tpcc_copy DB"
-    psql -c "DROP DATABASE tpcc" postgres
-    psql -c "CREATE DATABASE tpcc WITH TEMPLATE tpcc_copy" postgres
-
 done
 
 grep -e 'VU TEST' -e 'System achieved' $log_dir/${pgrun_file_name} > $result_dir/${result_file_name}
