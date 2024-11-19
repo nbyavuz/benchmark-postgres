@@ -15,6 +15,7 @@ if {  [ vucomplete ] || $x eq $seconds } { set timerstop 1 }
 return
 }
 
+set cur_vu [expr [lindex $argv 2]]
 puts "SETTING CONFIGURATION"
 dbset db pg
 dbset bm tpc-c
@@ -23,19 +24,16 @@ diset connection pg_port 5432
 diset tpcc pg_driver timed
 diset tpcc pg_rampup [expr [lindex $argv 0]]
 diset tpcc pg_duration [expr [lindex $argv 1]]
-diset tpcc pg_vacuum [expr [lindex $argv 2]]
 print dict
 vuset logtotemp 1
 loadscript
 puts "SEQUENCE STARTED"
-foreach z [lrange $argv 3 end]  {
-puts "$z VU TEST"
-vuset vu $z
+puts "$cur_vu VU TEST"
+vuset vu $cur_vu
 vucreate
 vurun
 runtimer [expr [lindex $argv 0] * 60 + [lindex $argv 1] * 60 + 120 * 60]
 vudestroy
 after 5000
-}
 puts "TEST SEQUENCE COMPLETE"
 exit
