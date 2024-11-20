@@ -24,7 +24,7 @@ cd $hammerdb_cli_dir
 
 for cur_vu in ${pg_benchmark_vu}; do
 
-    psql -c "DROP DATABASE IF EXISTS tpcc" postgres
+    psql -c "DROP DATABASE IF EXISTS tpcc" -d postgres -U postgres
 
 echo "Running schema build"
 ./hammerdbcli <<! 2>&1 | stdbuf -oL -eL sed -e "s,\x1B\[[0-9;]*[a-zA-Z],,g" -e "s,\r,,g" -e "s,hammerdb>,,g" -e "s,after\#[0-9]*,,g" >> $log_dir/${schemabuild_file_name}
@@ -34,8 +34,8 @@ source ${current_dir}/pgschemabuild.tcl
 !
 
     # Run VACUUM and CHECKPOINT before each benchmark
-    psql -c "VACUUM" postgres
-    psql -c "CHECKPOINT" postgres
+    psql -c "VACUUM" -d tpcc -U postgres
+    psql -c "CHECKPOINT" -d tpcc -U postgres
 
     echo "Running benchmark for ${cur_vu} VU"
 ./hammerdbcli <<! 2>&1 | stdbuf -oL -eL sed -e "s,\x1B\[[0-9;]*[a-zA-Z],,g" -e "s,\r,,g" -e "s,hammerdb>,,g" -e "s,after\#[0-9]*,,g" >> $log_dir/${pgrun_file_name}
