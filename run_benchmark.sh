@@ -72,7 +72,7 @@ create_backup () {
 copy_backup_to_pg () {
 
     echo "Copying backup to pgdir"
-    pg_ctl -D $pg_data_dir -l $1 -t $pg_ctl_timeout stop
+    pg_ctl -D $pg_data_dir -l $1 -t $pg_ctl_timeout stop -m immediate
     rm -rf $pg_data_dir/*
     cp -R $backup_dir/* $pg_data_dir
     echo "Done"
