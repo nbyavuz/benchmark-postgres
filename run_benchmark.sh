@@ -53,6 +53,12 @@ create_backup () {
     rm -rf $backup_dir
     echo "Done"
 
+    echo "Run VACUUM and CHECKPOINT before taking backup"
+    psql -c "CREATE EXTENSION pg_prewarm" -d tpcc -U postgres
+    psql -c "VACUUM ANALYZE" -d tpcc -U postgres
+    psql -c "CHECKPOINT" -d tpcc -U postgres
+    psql -c "SELECT pg_size_pretty( pg_database_size('tpcc') );" postgres
+
     echo "Stopping PG server for the creating backup"
     pg_ctl -D $pg_data_dir -l $load_log_file_name -t $pg_ctl_timeout stop
     echo "Done"
@@ -74,20 +80,11 @@ copy_backup_to_pg () {
 
 run_optimizations () {
 
-    echo "Running optimizations"
-
-    # Run VACUUM and CHECKPOINT before each benchmark
-    psql -c "CREATE EXTENSION pg_prewarm" -d tpcc -U postgres
-    psql -c "VACUUM ANALYZE" -d tpcc -U postgres
-    psql -c "CHECKPOINT" -d tpcc -U postgres
-    psql -c "SELECT pg_size_pretty( pg_database_size('tpcc') );" postgres
-
-	# prewarm the server
+    echo "Prewarm tpcc db"
 	psql -c "SELECT pg_prewarm('history')" -d tpcc -U postgres
 	psql -c "SELECT pg_prewarm('orders')" -d tpcc -U postgres
 	psql -c "SELECT pg_prewarm('customer')" -d tpcc -U postgres
 	psql -c "SELECT pg_prewarm('stock')" -d tpcc -U postgres
-
     echo "Done"
 }
 
