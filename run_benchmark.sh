@@ -66,7 +66,7 @@ create_backup () {
 copy_backup_to_pg () {
 
     echo "Copying backup to pgdir"
-    pg_ctl -D $pg_data_dir -l $1 -t $pg_ctl_timeout stop
+    pg_ctl -D $pg_data_dir -l $1 -t $pg_ctl_timeout stop -m immediate
     rm -rf $pg_data_dir/*
     cp -R $backup_dir/* $pg_data_dir
     echo "Done"
@@ -127,7 +127,7 @@ rm -rf $backup_dir
 echo "Done"
 
 grep -e 'VU TEST' -e 'System achieved' $hammerdb_log_dir/${pgrun_file_name} > $hammerdb_result_dir/${result_file_name}
-pg_ctl -D $pg_data_dir -l $log_file -t $pg_ctl_timeout stop
+pg_ctl -D $pg_data_dir -l $log_file -t $pg_ctl_timeout stop -m immediate
 echo "Benchmark is finished"
 
 cd $current_dir
