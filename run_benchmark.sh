@@ -72,6 +72,25 @@ copy_backup_to_pg () {
     echo "Done"
 }
 
+create_wait_event_table () {
+    psql -c "CREATE TABLE IF NOT EXISTS wait_event_summary (
+        timestamp TIMESTAMP DEFAULT now(),
+        wait_event_type TEXT,
+        wait_event TEXT,
+        count int
+    );" -d tpcc -U postgres
+}
+
+start_logging_wait_events () {
+    sleep_t=$((${pg_rampup} * 60))
+    loops=$((${pg_duration} * 60))
+    sleep ${sleep_t} && echo "INSERT INTO wait_event_summary SELECT now(), wait_event_type, wait_event, count(*) FROM pg_stat_activity GROUP BY 1, 2, 3 \watch i=1 c=${loops}" | psql -d tpcc -U postgres &
+}
+
+get_wait_events() {
+    psql -c "SELECT wait_event_type, wait_event, sum(count) FROM wait_event_summary GROUP BY 1, 2 ORDER BY 3 desc" -d tpcc -U postgres > $1
+}
+
 run_optimizations () {
 
     echo "Running optimizations"
@@ -109,14 +128,18 @@ first_iteration="true"
 for cur_vu in ${pg_benchmark_vu}; do
 
     log_file=$pg_log_dir/pglog-${cur_vu}-${DATE}
+    wait_event_file=$hammerdb_result_dir/wait-event-${cur_vu}-${DATE}
 
     if [ "$first_iteration" != "true" ]; then
         copy_backup_to_pg $prev_log_file
     fi
     pg_ctl -D $pg_data_dir -l $log_file -t $pg_ctl_timeout start
 
+    create_wait_event_table
     run_optimizations
+    start_logging_wait_events
     run_hammerdb_benchmark $cur_vu
+    get_wait_events $wait_event_file
 
     first_iteration="false"
     prev_log_file=$log_file
